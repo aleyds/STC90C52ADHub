@@ -1,1 +1,2 @@
 # STC90C52ADHub
+##STC90C52AD系列产品主版本
