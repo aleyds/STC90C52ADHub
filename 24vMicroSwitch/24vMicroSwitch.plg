@@ -1,0 +1,94 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Project:</h2>
+H:\KeilC51\24vMicroSwitch\24vMicroSwitch.uvproj
+Project File Date:  05/25/2016
+
+<h2>Output:</h2>
+Rebuild target '24vMircoSwitch'
+assembling STARTUP.A51...
+compiling main.c...
+code\src\main.c(1): warning C318: can't open file 'base_type.h'
+code\src\main.c(2): warning C318: can't open file 'platform.h'
+code\src\main.c(5): error C141: syntax error near 'ms', expected ')'
+code\src\main.c(7): error C141: syntax error near 'i'
+code\src\main.c(7): error C202: 'i': undefined identifier
+code\src\main.c(8): error C141: syntax error near 'j'
+code\src\main.c(8): error C202: 'j': undefined identifier
+code\src\main.c(9): error C202: 'i': undefined identifier
+code\src\main.c(11): error C202: 'j': undefined identifier
+code\src\main.c(22): error C202: 'IT0': undefined identifier
+code\src\main.c(23): error C202: 'EX0': undefined identifier
+code\src\main.c(25): error C202: 'IT1': undefined identifier
+code\src\main.c(26): error C202: 'EX1': undefined identifier
+code\src\main.c(28): error C202: 'EA': undefined identifier
+Target not created
+Rebuild target '24vMircoSwitch'
+assembling STARTUP.A51...
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?___DELAY?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?__SYSTEMINIT?MAIN
+Program Size: data=9.0 xdata=0 code=62
+".\obj\24vMicroSwitch" - 0 Error(s), 2 Warning(s).
+Rebuild target '24vMircoSwitch'
+assembling STARTUP.A51...
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?___DELAY?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?__SYSTEMINIT?MAIN
+Program Size: data=9.0 xdata=0 code=62
+creating hex file from ".\obj\24vMicroSwitch"...
+".\obj\24vMicroSwitch" - 0 Error(s), 2 Warning(s).
+Rebuild target '24vMircoSwitch'
+assembling STARTUP.A51...
+compiling main.c...
+code\src\main.c(4): warning C318: can't open file 'adc.h'
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?___DELAY?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?__SYSTEMINIT?MAIN
+Program Size: data=9.0 xdata=0 code=62
+creating hex file from ".\obj\24vMicroSwitch"...
+".\obj\24vMicroSwitch" - 0 Error(s), 3 Warning(s).
+Build target '24vMircoSwitch'
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?___DELAY?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?__SYSTEMINIT?MAIN
+Program Size: data=9.0 xdata=0 code=62
+creating hex file from ".\obj\24vMicroSwitch"...
+".\obj\24vMicroSwitch" - 0 Error(s), 2 Warning(s).
+Rebuild target '24vMircoSwitch'
+assembling STARTUP.A51...
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?___DELAY?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?__SYSTEMINIT?MAIN
+Program Size: data=9.0 xdata=0 code=62
+creating hex file from ".\obj\24vMicroSwitch"...
+".\obj\24vMicroSwitch" - 0 Error(s), 2 Warning(s).
+Rebuild target '24vMircoSwitch'
+assembling STARTUP.A51...
+compiling main.c...
+compiling adc.c...
+code\src\modules\adc.c(22): warning C209: '___ADCStart': too few actual parameters
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?___DELAY?MAIN
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_ADCGETRESULT?ADC
+Program Size: data=9.0 xdata=0 code=121
+creating hex file from ".\obj\24vMicroSwitch"...
+".\obj\24vMicroSwitch" - 0 Error(s), 3 Warning(s).
