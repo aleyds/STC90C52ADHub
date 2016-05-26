@@ -4,9 +4,14 @@
 #define STC90C52AD
 
 #ifdef STC90C52AD
+#define FOSC		(16000000L) //16M 芯片晶振大小Hz
 sfr WDG_REGISTER=0xe1;//看门狗
 sfr ISP_CONTR=0xe7; //ISP/IAP功能及软件复位
 
+//LED
+sbit EXTERNAL_LED=P0^1;
+
+//ADC寄存器
 sfr P1_ADC_EN = 0x97; // P1口模拟配置寄存器，配置对应的端口为ADC输入口
 sfr ADC_CONTER = 0xC5; //ADC 控制寄存器
 sfr ADC_DATA_HIGHT = 0xC6; //ADC 转换结果，10位高8位数据

@@ -3,6 +3,8 @@
 #include "intrins.h"
 #include "adc.h"
 
+#define TIME_15MIN		(15*60*1000)
+
 static void __Delay(H_U32 ms)
 {
 	H_U32 i = 0;
@@ -29,7 +31,38 @@ static void __SystemInit(void)
 		EA = 1;	//总中断开关
 }
 
-//static void 
+//外灯开启或关闭
+static void __ExternalLED(H_U8 _Status)
+{
+	if(!_Status)
+	{
+		//TODO:外灯关闭
+		EXTERNAL_LED=0;
+	}else
+	{
+		//TODO:外灯开启
+		EXTERNAL_LED=1;
+	}
+}
+
+static void __Timer0Callback(void)
+{
+	//TODO:
+	if(!EXTERNAL_LED)
+	{
+		__ExternalLED(H_TRUE);
+	}else 
+	{
+		__ExternalLED(H_FAUSE);
+		_TimerClose(0);//关闭外灯后关闭定时器
+	}
+}
+
+static void __MotorStopDisplay(void)
+{
+	_TimerCreat(0, TIME_15MIN, __Timer0Callback);
+	_TimerStart(0);
+}
 
 void main()
 {
