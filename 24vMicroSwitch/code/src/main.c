@@ -59,14 +59,21 @@ static void __Timer0Callback(void)
 	}
 }
 
-static void __MotorStopDisplay(void)
+static void __MotorStop(void)
 {
+	//开启15分钟定时器
 	_TimerCreat(0, TIME_15MIN, __Timer0Callback);
 	_TimerStart(0);
+	
 }
 
 void main()
 {
 		__SystemInit();
 		_ADCInit();
+		while(1)
+		{
+			
+		}
 }
+

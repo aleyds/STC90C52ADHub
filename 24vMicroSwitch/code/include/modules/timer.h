@@ -19,7 +19,7 @@ typedef void (*TimerCallback)(void);
 	_TimeOut: 定时器超时中断时间 ms
 	_Call:定时器超时中断处理函数
 */
-H_U32 _TimerCreat(H_U8 _Number, H_U16 _TimeOut, TimerCallback _Call);
+H_U32 _TimerCreat(H_U8 _Number, H_U32 _TimeOut, TimerCallback _Call);
 
 /*
 	启动定时器

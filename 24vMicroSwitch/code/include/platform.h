@@ -8,8 +8,19 @@
 sfr WDG_REGISTER=0xe1;//看门狗
 sfr ISP_CONTR=0xe7; //ISP/IAP功能及软件复位
 
+//微动开关
+sbit M_SWITCH1=P0^2;//A点1号微动开关
+sbit M_SWITCH2=P0^3;//B点2号微动开关
+sbit M_SWITCH3=P0^4;//C点3号微动开关
+sbit T_SWITCH =P0^6;//触摸开关
+
 //LED
 sbit EXTERNAL_LED=P0^1;
+sbit SWITCH1_LED=P0^5;//1号微动开关显示灯，离开开关时LED点亮  接触1号开关时LED熄灭
+
+//继电器开关
+sbit RELAY_A = P2^0;
+sbit RELAY_B = P2^1;
 
 //ADC寄存器
 sfr P1_ADC_EN = 0x97; // P1口模拟配置寄存器，配置对应的端口为ADC输入口

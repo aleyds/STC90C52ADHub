@@ -2,8 +2,8 @@
 #include "timer.h"
 
 typedef struct TimerSt{
-	H_U16 _TimeInit;
-	H_U16 _TimeCount;
+	H_U32 _TimeInit;
+	H_U32 _TimeCount;
 	TimerCallback _Call;
 }TimerSt_t;
 
@@ -17,7 +17,7 @@ static TimerManage_t* __TimerManage(void)
 	return (TimerManage_t *)&g_TimerManage;
 }
 
-H_U32 _TimerCreat(H_U8 _Number, H_U16 _TimeOut, TimerCallback _Call)
+H_U32 _TimerCreat(H_U8 _Number, H_U32 _TimeOut, TimerCallback _Call)
 {
 	TimerManage_t* _Manage = __TimerManage();
 	switch(_Number)
@@ -45,6 +45,7 @@ H_U32 _TimerStart(H_U8 _Number)
 			ET0=1;//开启定时器0中断
 			TR0=1;//开启定时器0
 			break;
+		case 
 		default:
 			break;
 	}
@@ -58,6 +59,10 @@ H_U32 _TimerClose(H_U8 _Number)
 		case _TYPE_TIMER_0:
 			ET0=0;//关闭定时器0中断
 			TR0=0;//关闭定时器0
+			break;
+		case _TYPE_TIMER_1:
+			break;
+		case _TYPE_TIMER_2:
 			break;
 		default:
 			break;
