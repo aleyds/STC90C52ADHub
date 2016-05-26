@@ -2,6 +2,7 @@
 #include <platform.h>
 #include "intrins.h"
 #include "adc.h"
+#include "timer.h"
 
 #define TIME_15MIN		(15*60*1000)
 

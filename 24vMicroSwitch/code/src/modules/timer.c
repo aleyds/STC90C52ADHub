@@ -48,7 +48,7 @@ H_U32 _TimerStart(H_U8 _Number)
 		default:
 			break;
 	}
-	return H_SUCCESS
+	return H_SUCCESS;
 }
 
 H_U32 _TimerClose(H_U8 _Number)
@@ -62,7 +62,7 @@ H_U32 _TimerClose(H_U8 _Number)
 		default:
 			break;
 	}
-	return H_SUCCESS
+	return H_SUCCESS;
 }
 
 //定时器0中断回调函数
