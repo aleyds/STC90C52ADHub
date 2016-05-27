@@ -15,8 +15,9 @@ sbit M_SWITCH3=P0^4;//C点3号微动开关
 sbit T_SWITCH =P0^6;//触摸开关
 
 //LED
-sbit EXTERNAL_LED=P0^1;
-sbit SWITCH1_LED=P0^5;//1号微动开关显示灯，离开开关时LED点亮  接触1号开关时LED熄灭
+sbit EXTERNAL_LED=P2^0;
+sbit SWITCH1_LED=P2^1;//1号微动开关显示灯，离开开关时LED点亮  接触1号开关时LED熄灭
+sbit SWITCH2_LED=P2^2;
 
 //继电器开关
 sbit RELAY_A = P2^0;
