@@ -9,12 +9,12 @@ sfr WDG_REGISTER=0xe1;//看门狗
 sfr ISP_CONTR=0xe7; //ISP/IAP功能及软件复位
 
 //微动开关
-sbit M_SWITCH1=P0^2;//A点1号微动开关
-sbit M_SWITCH2=P0^3;//B点2号微动开关
-sbit M_SWITCH3=P0^4;//C点3号微动开关
-sbit T_SWITCH =P0^6;//触摸开关
+sbit M_SWITCH1=P3^3;//A点1号微动开关
+sbit M_SWITCH2=P3^2;//B点2号微动开关
+sbit M_SWITCH3=P4^3;//C点3号微动开关
+sbit T_SWITCH =P4^2;//触摸开关
 
-//LED
+//LED	
 sbit EXTERNAL_LED=P2^0;
 sbit SWITCH1_LED=P2^1;//1号微动开关显示灯，离开开关时LED点亮  接触1号开关时LED熄灭
 sbit SWITCH2_LED=P2^2;

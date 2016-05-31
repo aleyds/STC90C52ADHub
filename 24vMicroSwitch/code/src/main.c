@@ -5,19 +5,19 @@
 #include "timer.h"
 
 #define TIME_15MIN		(15*60*1000)
+#define ADC_POWER_MAX		(1000)
 
-static void __Delay(H_U32 ms)
-{
-	H_U32 i = 0;
-	H_U32 j = 0;
-	for(i = ms; i> 0; i--)
-	{
-		for(j = 110; j > 0; j--)
-		{
-			_nop_();
-		}
-	}
-}
+typedef eunm {
+	_RUNNING_INIT,
+	_RUNNING_A_STOP, //接触到A点开关，停止
+	_RUNNING_B_STOP, //接触到B点开关，停止
+	_RUNNING_ATOB, //A-B运动
+	_RUNNING_BTOA, //B-A运动
+	_RUNNING_ATOB_STOP, //A-B运动中停止
+	_RUNNING_BTOA_STOP, //B-A运动中停止
+}_eRunningStatus;
+
+static _eSwitchStatus g_RunningStatus;
 
 //单片机系统初始化
 static void __SystemInit(void)
@@ -67,10 +67,108 @@ static void __MotorStop(void)
 	
 }
 
+ 
+
+static H_S8 _SwitchA(void)
+{
+	if(!(M_SWITCH1&0x01)) //A点1号微动开关，低电平有效
+	{
+		_Delay(10);//按键抖动
+		if(!(M_SWITCH1&0x01))//开关真正闭合
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static H_S8 _SwitchB(void)
+{
+	if(!(M_SWITCH2&0x01)) //B点2号微动开关，低电平有效
+	{
+		_Delay(10);//按键抖动
+		if(!(M_SWITCH2&0x01))//开关真正闭合
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static H_S8 _SwitchC(void)
+{
+	if(!(M_SWITCH3&0x01)) //C点3号微动开关，低电平有效
+	{
+		_Delay(10);//按键抖动
+		if(!(M_SWITCH3&0x01))//开关真正闭合
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static H_S8 _TouchSwitch(void)
+{
+	if(!(T_SWITCH&0x01)) //触摸开关，低电平有效
+	{
+		_Delay(10);//按键抖动
+		if(!(T_SWITCH&0x01))//开关真正闭合
+		{
+			//发出滴的声音
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static void _EventHandler(void)
+{
+	if(_TouchSwitch())//触发触摸开关
+	{
+		//1、如果状态在A点停止，则由A-B点运动，状态改为 _RUNNING_ATOB
+		//2、如果状态为B点停止，则由B-A运动，状态改为 _RUNNING_BTOA
+		//3、如果状态为 _RUNNING_ATOB ，则停止运动，状态为 _RUNNING_ATOB_STOP
+		//4、如果状态为 _RUNNING_BTOA，则停止运动，状态为 _RUNNING_BTOA_STOP
+		//5、如果状态为_RUNNING_ATOB_STOP，则由B-A返回运动，状态为_RUNNING_ATOB
+		//6、如果状态为 _RUNNING_BTOA_STOP，则由A-B返回云顶，状态为 _RUNNING_BTOA
+	}
+	
+	if(_SwitchA()&&(g_RunningStatus != _RUNNING_A_STOP))//A点开关闭合
+	{
+		//停止电机运动，状态为_RUNNING_A_STOP
+		__MotorStop();
+		g_RunningStatus = _RUNNING_A_STOP;
+		//1号开关LED熄灭
+		SWITCH1_LED = 0;
+	}
+	if(_SwitchB() && (g_RunningStatus != _RUNNING_B_STOP))
+	{
+		//停止电机运动，状态为_RUNNING_A_STOP
+		__MotorStop();
+		g_RunningStatus = _RUNNING_B_STOP;
+	}
+	
+	if(!_SwitchC() && (g_RunningStatus == _RUNNING_ATOB))
+	{
+		_Delay(100);//等待一段时间后
+		if(_SwitchC())//3号开关又闭合状态
+		{
+			//反转为A点，状态为 _RUNNING_BTOA
+		}
+	}
+	
+	if((_ADCGetResult() > ADC_POWER_MAX) && (g_RunningStatus == _RUNNING_BTOA))
+	{
+		//反转为向B点运动， 状态为 _RUNNING_ATOB
+	}
+}
+
 void main()
 {
 		__SystemInit();
 		_ADCInit();
+		g_RunningStatus = _RUNNING_INIT;
 		while(1)
 		{
 			

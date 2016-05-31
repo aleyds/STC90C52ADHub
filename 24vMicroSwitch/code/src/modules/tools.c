@@ -10,3 +10,16 @@ void _SystemWDT(void)
 {
 	WDG_REGISTER=(WDT_ENABLE|WDT_CLEAR|WDT_IDLE|_WDT_SCALE64);
 }
+
+void _Delay(H_U32 ms)
+{
+	H_U32 i = 0;
+	H_U32 j = 0;
+	for(i = ms; i> 0; i--)
+	{
+		for(j = 110; j > 0; j--)
+		{
+			_nop_();
+		}
+	}
+}

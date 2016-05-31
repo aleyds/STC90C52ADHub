@@ -18,4 +18,5 @@ enum{
 
 void _SystemReset(void);
 void _SystemWDT(void);
+void _Delay(H_U32 ms);
 #endif
