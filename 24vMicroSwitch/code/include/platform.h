@@ -5,6 +5,8 @@
 
 #ifdef STC90C52AD
 #define FOSC		(16000000L) //16M 芯片晶振大小Hz
+sfr P4=0xC0;
+
 sfr WDG_REGISTER=0xe1;//看门狗
 sfr ISP_CONTR=0xe7; //ISP/IAP功能及软件复位
 
@@ -20,8 +22,9 @@ sbit SWITCH1_LED=P2^1;//1号微动开关显示灯，离开开关时LED点亮  �
 sbit SWITCH2_LED=P2^2;
 
 //继电器开关
-sbit RELAY_A = P2^0;
-sbit RELAY_B = P2^1;
+sbit RELAY_C = P2^7;  //电机开关
+sbit RELAY_A = P2^6;  //控制运动方向  1
+sbit RELAY_B = P2^5;  //控制运动方向  2
 
 //ADC寄存器
 sfr P1_ADC_EN = 0x97; // P1口模拟配置寄存器，配置对应的端口为ADC输入口

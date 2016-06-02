@@ -1,4 +1,5 @@
 #include "base_type.h"
+#include "intrins.h"
 #include "tools.h"
 
 void _SystemReset(void)

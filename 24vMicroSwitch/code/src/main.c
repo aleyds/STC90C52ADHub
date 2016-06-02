@@ -2,12 +2,14 @@
 #include <platform.h>
 #include "intrins.h"
 #include "adc.h"
+#include "tools.h"
+#include "uart.h"
 #include "timer.h"
 
 #define TIME_15MIN		(15*60*1000)
 #define ADC_POWER_MAX		(1000)
 
-typedef eunm {
+typedef enum _eRunningStatus_{
 	_RUNNING_INIT,
 	_RUNNING_A_STOP, //接触到A点开关，停止
 	_RUNNING_B_STOP, //接触到B点开关，停止
@@ -17,7 +19,7 @@ typedef eunm {
 	_RUNNING_BTOA_STOP, //B-A运动中停止
 }_eRunningStatus;
 
-static _eSwitchStatus g_RunningStatus;
+static _eRunningStatus g_RunningStatus;
 
 //单片机系统初始化
 static void __SystemInit(void)
@@ -64,9 +66,13 @@ static void __MotorStop(void)
 	//开启15分钟定时器
 	_TimerCreat(0, TIME_15MIN, __Timer0Callback);
 	_TimerStart(0);
-	
+	RELAY_C = 0;
 }
 
+static void __MotorStart(void)
+{
+	RELAY_C = 1;
+}
  
 
 static H_S8 _SwitchA(void)
@@ -124,6 +130,7 @@ static H_S8 _TouchSwitch(void)
 
 static void _EventHandler(void)
 {
+	H_U16 _AdcData = 0;
 	if(_TouchSwitch())//触发触摸开关
 	{
 		//1、如果状态在A点停止，则由A-B点运动，状态改为 _RUNNING_ATOB
@@ -132,19 +139,66 @@ static void _EventHandler(void)
 		//4、如果状态为 _RUNNING_BTOA，则停止运动，状态为 _RUNNING_BTOA_STOP
 		//5、如果状态为_RUNNING_ATOB_STOP，则由B-A返回运动，状态为_RUNNING_ATOB
 		//6、如果状态为 _RUNNING_BTOA_STOP，则由A-B返回云顶，状态为 _RUNNING_BTOA
+		if(g_RunningStatus == _RUNNING_A_STOP)
+		{
+			RELAY_B = 1;
+			RELAY_A = 0;
+			g_RunningStatus = _RUNNING_ATOB;
+			__MotorStart();
+		}else if(g_RunningStatus == _RUNNING_B_STOP)
+		{
+			RELAY_A = 1;
+			RELAY_B = 0;
+			g_RunningStatus = _RUNNING_BTOA;
+			__MotorStart();
+		}else if(g_RunningStatus == _RUNNING_ATOB)
+		{
+			RELAY_A = 0;
+			RELAY_B = 0;
+			g_RunningStatus = _RUNNING_ATOB_STOP;
+			__MotorStop();
+		}else if(g_RunningStatus == _RUNNING_BTOA)
+		{
+			RELAY_A = 0;
+			RELAY_B = 0;
+			g_RunningStatus = _RUNNING_BTOA_STOP;
+			__MotorStop();
+		}else if(g_RunningStatus == _RUNNING_ATOB_STOP)
+		{
+			RELAY_A = 1;
+			RELAY_B = 0;
+			g_RunningStatus = _RUNNING_ATOB;
+			__MotorStart();
+		}else if(g_RunningStatus == _RUNNING_BTOA_STOP)
+		{
+			RELAY_A = 0;
+			RELAY_B = 1;
+			g_RunningStatus = _RUNNING_BTOA;
+			__MotorStart();
+		}
+		
 	}
 	
 	if(_SwitchA()&&(g_RunningStatus != _RUNNING_A_STOP))//A点开关闭合
 	{
 		//停止电机运动，状态为_RUNNING_A_STOP
+		RELAY_A = 1;
+		RELAY_B = 0;
 		__MotorStop();
 		g_RunningStatus = _RUNNING_A_STOP;
 		//1号开关LED熄灭
+		SWITCH1_LED = 1;
+	}else
+	{
 		SWITCH1_LED = 0;
 	}
+	
+	
 	if(_SwitchB() && (g_RunningStatus != _RUNNING_B_STOP))
 	{
 		//停止电机运动，状态为_RUNNING_A_STOP
+		RELAY_A = 0;
+		RELAY_B = 0;
 		__MotorStop();
 		g_RunningStatus = _RUNNING_B_STOP;
 	}
@@ -155,12 +209,22 @@ static void _EventHandler(void)
 		if(_SwitchC())//3号开关又闭合状态
 		{
 			//反转为A点，状态为 _RUNNING_BTOA
+			RELAY_A = 1;
+			RELAY_B = 0;
+			g_RunningStatus = _RUNNING_BTOA;
+			__MotorStart();
 		}
 	}
 	
-	if((_ADCGetResult() > ADC_POWER_MAX) && (g_RunningStatus == _RUNNING_BTOA))
+	_AdcData = _ADCGetResult();
+	_UartPrintf(RED"[main] _ADCGetResult %d\n\r",_AdcData);
+	if((_AdcData > ADC_POWER_MAX) && (g_RunningStatus == _RUNNING_BTOA))
 	{
 		//反转为向B点运动， 状态为 _RUNNING_ATOB
+		RELAY_A = 0;
+		RELAY_B = 1;
+		g_RunningStatus = _RUNNING_ATOB;
+		__MotorStart();
 	}
 }
 
@@ -168,9 +232,12 @@ void main()
 {
 		__SystemInit();
 		_ADCInit();
+		_UartOpen();
 		g_RunningStatus = _RUNNING_INIT;
+		_UartPrintf(RED"[main] Start \n\r");
 		while(1)
 		{
+			_EventHandler();
 			
 		}
 }

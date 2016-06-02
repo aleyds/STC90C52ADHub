@@ -45,7 +45,6 @@ H_U32 _TimerStart(H_U8 _Number)
 			ET0=1;//开启定时器0中断
 			TR0=1;//开启定时器0
 			break;
-		case 
 		default:
 			break;
 	}
