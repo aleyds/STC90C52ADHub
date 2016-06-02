@@ -28,6 +28,15 @@
 void _UartOpen(void);
 void _UartPrintf(H_U8 *fmt, ...);
 
+#if defined(DEBUG_SWITCH)
+
+#define hs_printf _UartPrintf
+
+#else
+	
+#define hs_printf 
+#endif
+
 /*
 #if defined(DEBUG_SWITCH)
 

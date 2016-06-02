@@ -1,5 +1,5 @@
 #include "base_type.h"
-#include<stdarg.h>
+#include <stdarg.h>
 #include "uart.h"
 
 #define check_zero(data)\
@@ -14,7 +14,7 @@ do{\
 void _UartOpen(void)
 {
 	SCON=0x50;
-	TMOD=0x20;
+	TMOD = TMOD | 0x20;
 	PCON=0x00;//波特率不倍增
 	TH1=0xFD; //波特率为9600
 	TL1=0xFD;
@@ -56,7 +56,7 @@ static void __UartPutBin(H_U32 bin)
 		return;
 	}
 	__UartPutBin(bin/2);
-	__UartSend((char )(bin%2 + '0'));
+	__UartSend((H_U8 )(bin%2 + '0'));
 }
 
 static void __UartPutHex(H_U32 hex)
@@ -101,8 +101,8 @@ void _UartPrintf(H_U8 *fmt, ...)
 				case 'd':
 				case 'i':
 					vargint = va_arg(vp, H_U32);
-					check_zero(vargint);
-					__UartPutDec(vargint);
+					//check_zero(vargint);
+					__UartPutDec(11);
 					break;
 				case 's':
 					vargpch = va_arg(vp, H_U8 *);

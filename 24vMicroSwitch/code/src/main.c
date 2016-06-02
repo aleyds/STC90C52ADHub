@@ -139,6 +139,7 @@ static void _EventHandler(void)
 		//4、如果状态为 _RUNNING_BTOA，则停止运动，状态为 _RUNNING_BTOA_STOP
 		//5、如果状态为_RUNNING_ATOB_STOP，则由B-A返回运动，状态为_RUNNING_ATOB
 		//6、如果状态为 _RUNNING_BTOA_STOP，则由A-B返回云顶，状态为 _RUNNING_BTOA
+		hs_printf("TouchSwitch Enable \n\r");
 		if(g_RunningStatus == _RUNNING_A_STOP)
 		{
 			RELAY_B = 1;
@@ -179,7 +180,7 @@ static void _EventHandler(void)
 		
 	}
 	
-	if(_SwitchA()&&(g_RunningStatus != _RUNNING_A_STOP))//A点开关闭合
+	if(!_SwitchA()&&(g_RunningStatus != _RUNNING_A_STOP))//A点开关闭合
 	{
 		//停止电机运动，状态为_RUNNING_A_STOP
 		RELAY_A = 1;
@@ -188,6 +189,7 @@ static void _EventHandler(void)
 		g_RunningStatus = _RUNNING_A_STOP;
 		//1号开关LED熄灭
 		SWITCH1_LED = 1;
+		hs_printf("_SwitchA Enable \n\r");
 	}else
 	{
 		SWITCH1_LED = 0;
@@ -201,6 +203,7 @@ static void _EventHandler(void)
 		RELAY_B = 0;
 		__MotorStop();
 		g_RunningStatus = _RUNNING_B_STOP;
+		hs_printf("_SwitchB Enable \n\r");
 	}
 	
 	if(!_SwitchC() && (g_RunningStatus == _RUNNING_ATOB))
@@ -213,11 +216,13 @@ static void _EventHandler(void)
 			RELAY_B = 0;
 			g_RunningStatus = _RUNNING_BTOA;
 			__MotorStart();
+			hs_printf("_SwitchC Enable \n\r");
 		}
+		
 	}
 	
 	_AdcData = _ADCGetResult();
-	_UartPrintf(RED"[main] _ADCGetResult %d\n\r",_AdcData);
+	hs_printf(RED"[main] _ADCGetResult %d status :%d\n\r",_AdcData,11);
 	if((_AdcData > ADC_POWER_MAX) && (g_RunningStatus == _RUNNING_BTOA))
 	{
 		//反转为向B点运动， 状态为 _RUNNING_ATOB
@@ -225,6 +230,7 @@ static void _EventHandler(void)
 		RELAY_B = 1;
 		g_RunningStatus = _RUNNING_ATOB;
 		__MotorStart();
+		hs_printf("_AdcData Enable \n\r");
 	}
 }
 
@@ -234,7 +240,7 @@ void main()
 		_ADCInit();
 		_UartOpen();
 		g_RunningStatus = _RUNNING_INIT;
-		_UartPrintf(RED"[main] Start \n\r");
+		hs_printf(RED"[main] Start \n\r");
 		while(1)
 		{
 			_EventHandler();
