@@ -118,10 +118,12 @@ static H_S8 _TouchSwitch(void)
 {
 	if(!(T_SWITCH&0x01)) //触摸开关，低电平有效
 	{
+		hs_printf("TouchSwitch 111 \n\r");
 		_Delay(10);//按键抖动
 		if(!(T_SWITCH&0x01))//开关真正闭合
 		{
 			//发出滴的声音
+
 			return 1;
 		}
 	}
@@ -180,7 +182,7 @@ static void _EventHandler(void)
 		
 	}
 	
-	if(!_SwitchA()&&(g_RunningStatus != _RUNNING_A_STOP))//A点开关闭合
+	if(_SwitchA()&&(g_RunningStatus != _RUNNING_A_STOP))//A点开关闭合
 	{
 		//停止电机运动，状态为_RUNNING_A_STOP
 		RELAY_A = 1;
@@ -190,7 +192,7 @@ static void _EventHandler(void)
 		//1号开关LED熄灭
 		SWITCH1_LED = 1;
 		hs_printf("_SwitchA Enable \n\r");
-	}else
+	}else if(!_SwitchA())
 	{
 		SWITCH1_LED = 0;
 	}
@@ -222,7 +224,7 @@ static void _EventHandler(void)
 	}
 	
 	_AdcData = _ADCGetResult();
-	hs_printf(RED"[main] _ADCGetResult %d status :%d\n\r",_AdcData,11);
+	//hs_printf("[main] _ADCGetResult :%x status :%d \n\r",_AdcData,g_RunningStatus);
 	if((_AdcData > ADC_POWER_MAX) && (g_RunningStatus == _RUNNING_BTOA))
 	{
 		//反转为向B点运动， 状态为 _RUNNING_ATOB

@@ -376,6 +376,21 @@
               <FileType>1</FileType>
               <FilePath>.\code\src\modules\adc.c</FilePath>
             </File>
+            <File>
+              <FileName>timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\code\src\modules\timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>tools.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\code\src\modules\tools.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\code\src\modules\uart.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

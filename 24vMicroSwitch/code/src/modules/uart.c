@@ -30,16 +30,6 @@ static void __UartSend(H_U8 _ch)
 }
 
 
-static void __UartPutDec(H_U32 dec)
-{
-	if(dec == 0)
-	{
-		return;
-	}
-	__UartPutDec(dec/10);
-	__UartSend((H_U8)(dec%10 + '0'));
-}
-
 static void __UartPutStr(const H_U8 *str)
 {
 	while(*str != '\0')
@@ -48,8 +38,26 @@ static void __UartPutStr(const H_U8 *str)
 	}
 }
 
+static void __UartPutDec(H_U32 dec)
+{
+	/*
+	if(dec == 0)
+	{
+		return;
+	}
+	__UartPutDec(dec/10);
+	__UartSend((H_U8)(dec%10 + '0'));
+	*/
+	H_U8 buffer[12] = { 0 };
+	sprintf(buffer, "%d", dec);
+	__UartPutStr(buffer);
+}
+
+
+
 static void __UartPutBin(H_U32 bin)
 {
+	/*
 	if(bin == 0)
 	{
 		__UartPutStr("0b");
@@ -57,10 +65,15 @@ static void __UartPutBin(H_U32 bin)
 	}
 	__UartPutBin(bin/2);
 	__UartSend((H_U8 )(bin%2 + '0'));
+	*/
+	H_U8 buffer[12] = { 0 };
+	sprintf(buffer, "0x%B", bin);
+	__UartPutStr(buffer);
 }
 
 static void __UartPutHex(H_U32 hex)
 {
+	/*
 	if(hex == 0)
 	{
 		__UartPutStr("0x");
@@ -75,6 +88,10 @@ static void __UartPutHex(H_U32 hex)
 	{
 		__UartSend((H_U8)((hex%16 - 10) + 'A'));
 	}
+	*/
+	H_U8 buffer[12] = { 0 };
+	sprintf(buffer, "0x%x", hex);
+	__UartPutStr(buffer);
 }
 
 void _UartPrintf(H_U8 *fmt, ...)
@@ -101,8 +118,8 @@ void _UartPrintf(H_U8 *fmt, ...)
 				case 'd':
 				case 'i':
 					vargint = va_arg(vp, H_U32);
-					//check_zero(vargint);
-					__UartPutDec(11);
+					check_zero(vargint);
+					__UartPutDec(vargint);
 					break;
 				case 's':
 					vargpch = va_arg(vp, H_U8 *);
@@ -117,7 +134,7 @@ void _UartPrintf(H_U8 *fmt, ...)
 				case 'x':
 				case 'X':
 					vargint = va_arg(vp, H_U32);
-					//check_zero(vargint);
+					check_zero(vargint);
 					__UartPutHex(vargint);
 					break;
 				case '%':
