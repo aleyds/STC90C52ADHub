@@ -37,49 +37,5 @@ void _UartPrintf(H_U8 *fmt, ...);
 #define hs_printf 
 #endif
 
-/*
-#if defined(DEBUG_SWITCH)
-
-#define hs_printf(moulde,level,fmt,args...)\
-do{\
-	if(level >= DEBUG_LEVEL_ENABLE)\
-	{\
-		if(level == LEVEL_DEBUG)\
-		{\
-			_UartPrintf("["moulde"][%d]"fmt"\n\r",level,##args);\
-		}\
-		else if(level == LEVEL_WARNING)\
-		{\
-			_UartPrintf(BLUE"["moulde"][%d]"fmt"\n\r"NONE,level,##args);\
-		}\
-		else if(level == LEVEL_ERROR)\
-		{\
-			_UartPrintf(RED"["moulde"][%d]"fmt"\n\r"NONE,level,##args);\
-		}\
-		else \
-		{\
-			_UartPrintf(GREEN"["moulde"][%d]"fmt"\n\r"NONE,level,##args);\
-		}\
-	}\
-}while(0);
-
-#define hs_printf_array(array,len)\
-do{\
-	H_U32 i;\
-	for(i = 0; i < len; i++)\
-	{\
-		if(i%16 == 0)\
-		{\
-			_UartPrintf("\n\r");\
-		}\
-		_UartPrintf("%x ",array[i]);\
-	}\
-	_UartPrintf("\n\r len:%d \n\r",i);\
-}while(0);
-#else
-#define hs_printf(moulde,level,fmt,args...)			//do{}while(0);
-#define hs_printf_array(array,len)					//do{}while(0);
-#endif
-*/
 
 #endif
