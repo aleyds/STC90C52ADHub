@@ -7,7 +7,8 @@
 #include "timer.h"
 
 #define TIME_15MIN		(15*60*1000)
-#define ADC_POWER_MAX		(1000)
+#define ADC_POWER_MAX		(0x8f)
+#define ADC_POWER_MIN		(0x70)
 
 typedef enum _eRunningStatus_{
 	_RUNNING_INIT,
@@ -224,8 +225,8 @@ static void _EventHandler(void)
 	}
 	
 	_AdcData = _ADCGetResult();
-	//hs_printf("[main] _ADCGetResult :%x status :%d \n\r",_AdcData,g_RunningStatus);
-	if((_AdcData > ADC_POWER_MAX) && (g_RunningStatus == _RUNNING_BTOA))
+	hs_printf("[main] _ADCGetResult :%x status :%d \n\r",_AdcData,g_RunningStatus);
+	if(((_AdcData > ADC_POWER_MAX) ||(_AdcData < ADC_POWER_MIN)) && (g_RunningStatus == _RUNNING_BTOA))
 	{
 		//反转为向B点运动， 状态为 _RUNNING_ATOB
 		RELAY_A = 0;
