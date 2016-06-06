@@ -7,6 +7,11 @@
 #include "timer.h"
 
 #define TIME_15MIN		(15*60*1000)
+
+#define TOUCH_RESTORE_TIME		(50)
+static H_U8 g_TouchEnable = 0;
+static H_U32 g_TouchRestore = 0;
+static H_U32 g_CurrrentData = 0;
 #define ADC_POWER_MAX		(0x8f)
 #define ADC_POWER_MIN		(0x70)
 
@@ -41,18 +46,18 @@ static void __ExternalLED(H_U8 _Status)
 	if(!_Status)
 	{
 		//TODO:外灯关闭
-		EXTERNAL_LED=0;
+		RELAY_C=0;
 	}else
 	{
 		//TODO:外灯开启
-		EXTERNAL_LED=1;
+		RELAY_C=1;
 	}
 }
 
 static void __Timer0Callback(void)
 {
 	//TODO:
-	if(!EXTERNAL_LED)
+	if(!RELAY_C)
 	{
 		__ExternalLED(H_TRUE);
 	}else 
@@ -67,12 +72,24 @@ static void __MotorStop(void)
 	//开启15分钟定时器
 	_TimerCreat(0, TIME_15MIN, __Timer0Callback);
 	_TimerStart(0);
-	RELAY_C = 0;
+	RELAY_A = 0;
+	RELAY_B = 0;
+	//RELAY_C = 0;
+	g_CurrrentData = 0;
 }
 
-static void __MotorStart(void)
+static void __MotorStart(H_U8 _Turn)
 {
-	RELAY_C = 1;
+	if(_Turn == 0)
+	{
+		RELAY_A = 1;
+		RELAY_B = 0;
+	}else
+	{
+		RELAY_A = 0;
+		RELAY_B = 1;
+	}
+	g_CurrrentData = _ADCGetResult();
 }
  
 
@@ -131,11 +148,24 @@ static H_S8 _TouchSwitch(void)
 	return 0;
 }
 
+
+
 static void _EventHandler(void)
 {
 	H_U16 _AdcData = 0;
-	if(_TouchSwitch())//触发触摸开关
+	g_TouchRestore = (g_TouchRestore > TOUCH_RESTORE_TIME)?TOUCH_RESTORE_TIME:g_TouchRestore;
+	if(g_TouchRestore == 0)
 	{
+		g_TouchEnable = 0;
+	}else 
+	{
+		g_TouchRestore--;
+	}
+	
+	if(_TouchSwitch()&&g_TouchEnable==0)//触发触摸开关
+	{
+		g_TouchEnable = 1;
+		g_TouchRestore = TOUCH_RESTORE_TIME;
 		//1、如果状态在A点停止，则由A-B点运动，状态改为 _RUNNING_ATOB
 		//2、如果状态为B点停止，则由B-A运动，状态改为 _RUNNING_BTOA
 		//3、如果状态为 _RUNNING_ATOB ，则停止运动，状态为 _RUNNING_ATOB_STOP
@@ -148,23 +178,19 @@ static void _EventHandler(void)
 			RELAY_B = 1;
 			RELAY_A = 0;
 			g_RunningStatus = _RUNNING_ATOB;
-			__MotorStart();
+			__MotorStart(1);
 		}else if(g_RunningStatus == _RUNNING_B_STOP)
 		{
 			RELAY_A = 1;
 			RELAY_B = 0;
 			g_RunningStatus = _RUNNING_BTOA;
-			__MotorStart();
+			__MotorStart(0);
 		}else if(g_RunningStatus == _RUNNING_ATOB)
 		{
-			RELAY_A = 0;
-			RELAY_B = 0;
 			g_RunningStatus = _RUNNING_ATOB_STOP;
 			__MotorStop();
 		}else if(g_RunningStatus == _RUNNING_BTOA)
 		{
-			RELAY_A = 0;
-			RELAY_B = 0;
 			g_RunningStatus = _RUNNING_BTOA_STOP;
 			__MotorStop();
 		}else if(g_RunningStatus == _RUNNING_ATOB_STOP)
@@ -172,22 +198,26 @@ static void _EventHandler(void)
 			RELAY_A = 1;
 			RELAY_B = 0;
 			g_RunningStatus = _RUNNING_ATOB;
-			__MotorStart();
+			__MotorStart(0);
 		}else if(g_RunningStatus == _RUNNING_BTOA_STOP)
 		{
 			RELAY_A = 0;
 			RELAY_B = 1;
 			g_RunningStatus = _RUNNING_BTOA;
-			__MotorStart();
+			__MotorStart(1);
 		}
 		
+		//开启LED灯
+		EXTERNAL_LED=0;
+		_Delay(2000);
+		EXTERNAL_LED=1;
 	}
 	
-	if(_SwitchA()&&(g_RunningStatus != _RUNNING_A_STOP))//A点开关闭合
+	if(_SwitchA()/*&&(g_RunningStatus != _RUNNING_A_STOP)*/)//A点开关闭合
 	{
 		//停止电机运动，状态为_RUNNING_A_STOP
-		RELAY_A = 1;
-		RELAY_B = 0;
+		//RELAY_A = 1;
+		//RELAY_B = 0;
 		__MotorStop();
 		g_RunningStatus = _RUNNING_A_STOP;
 		//1号开关LED熄灭
@@ -199,11 +229,11 @@ static void _EventHandler(void)
 	}
 	
 	
-	if(_SwitchB() && (g_RunningStatus != _RUNNING_B_STOP))
+	if(_SwitchB() /*&& (g_RunningStatus != _RUNNING_B_STOP)*/)
 	{
 		//停止电机运动，状态为_RUNNING_A_STOP
-		RELAY_A = 0;
-		RELAY_B = 0;
+		//RELAY_A = 0;
+		//RELAY_B = 0;
 		__MotorStop();
 		g_RunningStatus = _RUNNING_B_STOP;
 		hs_printf("_SwitchB Enable \n\r");
@@ -215,10 +245,10 @@ static void _EventHandler(void)
 		if(_SwitchC())//3号开关又闭合状态
 		{
 			//反转为A点，状态为 _RUNNING_BTOA
-			RELAY_A = 1;
-			RELAY_B = 0;
+			//RELAY_A = 1;
+			//RELAY_B = 0;
 			g_RunningStatus = _RUNNING_BTOA;
-			__MotorStart();
+			__MotorStart(0);
 			hs_printf("_SwitchC Enable \n\r");
 		}
 		
@@ -226,13 +256,14 @@ static void _EventHandler(void)
 	
 	_AdcData = _ADCGetResult();
 	hs_printf("[main] _ADCGetResult :%x status :%d \n\r",_AdcData,g_RunningStatus);
-	if(((_AdcData > ADC_POWER_MAX) ||(_AdcData < ADC_POWER_MIN)) && (g_RunningStatus == _RUNNING_BTOA))
+	
+	if(((g_CurrrentData != 0) &&(_AdcData < ADC_POWER_MIN || _AdcData > ADC_POWER_MAX)) && (g_RunningStatus == _RUNNING_BTOA))
 	{
 		//反转为向B点运动， 状态为 _RUNNING_ATOB
-		RELAY_A = 0;
-		RELAY_B = 1;
+		//RELAY_A = 0;
+		//RELAY_B = 1;
 		g_RunningStatus = _RUNNING_ATOB;
-		__MotorStart();
+		__MotorStart(1);
 		hs_printf("_AdcData Enable \n\r");
 	}
 }
