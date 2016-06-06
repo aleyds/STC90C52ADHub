@@ -8,7 +8,7 @@
 
 #define TIME_15MIN		(15*60*1000)
 
-#define TOUCH_RESTORE_TIME		(50)
+#define TOUCH_RESTORE_TIME		(3)
 static H_U8 g_TouchEnable = 0;
 static H_U32 g_TouchRestore = 0;
 static H_U32 g_CurrrentData = 0;
@@ -67,6 +67,18 @@ static void __Timer0Callback(void)
 	}
 }
 
+//读取10次求平均值
+static H_U16 _ADCResultAverage(void)
+{
+	H_U8 i = 0;
+	H_U32 sum = 0;
+	for(i = 0; i < 20;i++)
+	{
+		sum += _ADCGetResult();
+	}
+	return (sum/20);
+}
+
 static void __MotorStop(void)
 {
 	//开启15分钟定时器
@@ -76,6 +88,7 @@ static void __MotorStop(void)
 	RELAY_B = 0;
 	//RELAY_C = 0;
 	g_CurrrentData = 0;
+	hs_printf(" Motor Stop \n\r");
 }
 
 static void __MotorStart(H_U8 _Turn)
@@ -89,7 +102,8 @@ static void __MotorStart(H_U8 _Turn)
 		RELAY_A = 0;
 		RELAY_B = 1;
 	}
-	g_CurrrentData = _ADCGetResult();
+	hs_printf(" Motor Start \n\r");
+	g_CurrrentData = _ADCResultAverage();
 }
  
 
@@ -148,6 +162,14 @@ static H_S8 _TouchSwitch(void)
 	return 0;
 }
 
+static H_U16 _ADCGetPoint(H_U16 current)
+{
+	if(current == 0)
+	{
+		return 0;
+	}
+	 return ((current - 511)>>2);
+}
 
 
 static void _EventHandler(void)
@@ -209,7 +231,7 @@ static void _EventHandler(void)
 		
 		//开启LED灯
 		EXTERNAL_LED=0;
-		_Delay(2000);
+		_Delay(1000);
 		EXTERNAL_LED=1;
 	}
 	
@@ -242,7 +264,7 @@ static void _EventHandler(void)
 	if(!_SwitchC() && (g_RunningStatus == _RUNNING_ATOB))
 	{
 		_Delay(100);//等待一段时间后
-		if(_SwitchC())//3号开关又闭合状态
+		if(!_SwitchC())//3号开关又闭合状态
 		{
 			//反转为A点，状态为 _RUNNING_BTOA
 			//RELAY_A = 1;
@@ -254,10 +276,10 @@ static void _EventHandler(void)
 		
 	}
 	
-	_AdcData = _ADCGetResult();
-	hs_printf("[main] _ADCGetResult :%x status :%d \n\r",_AdcData,g_RunningStatus);
+	_AdcData = _ADCResultAverage();
+	//hs_printf("[main] _ADCGetResult :%d current :%d point:%d\n\r",_AdcData,g_CurrrentData,_ADCGetPoint(g_CurrrentData));
 	
-	if(((g_CurrrentData != 0) &&(_AdcData < ADC_POWER_MIN || _AdcData > ADC_POWER_MAX)) && (g_RunningStatus == _RUNNING_BTOA))
+	if((g_CurrrentData != 0) &&(_AdcData > (g_CurrrentData+_ADCGetPoint(g_CurrrentData)) ) && (g_RunningStatus == _RUNNING_BTOA))
 	{
 		//反转为向B点运动， 状态为 _RUNNING_ATOB
 		//RELAY_A = 0;
@@ -267,6 +289,10 @@ static void _EventHandler(void)
 		hs_printf("_AdcData Enable \n\r");
 	}
 }
+
+
+
+
 
 void main()
 {

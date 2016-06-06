@@ -35,5 +35,5 @@ H_U16 _ADCGetResult(void)
 		//hs_printf("ADC_CONTER:%x  %x\n\r",ADC_DATA_HIGHT, ADC_DATA_LOW);
 	
 		ADC_CONTER &= ~ADC_FLAG;//停止ADC转换，清楚结束标志
-		return (H_U16)ADC_DATA_HIGHT;//(((ADC_DATA_HIGHT&0xFF)<<2)| ADC_DATA_LOW&0x3);
+		return (H_U16)(((ADC_DATA_HIGHT&0xFF)<<2)| ADC_DATA_LOW&0x3);
 }
