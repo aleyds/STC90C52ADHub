@@ -264,7 +264,7 @@ static void _EventHandler(void)
 	if(!_SwitchC() && (g_RunningStatus == _RUNNING_ATOB))
 	{
 		_Delay(100);//等待一段时间后
-		if(!_SwitchC())//3号开关又闭合状态
+		if(_SwitchC())//3号开关又闭合状态
 		{
 			//反转为A点，状态为 _RUNNING_BTOA
 			//RELAY_A = 1;
