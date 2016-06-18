@@ -29,7 +29,7 @@ H_U32 _TimerCreat(H_U8 _Number, H_U32 _TimeOut, TimerCallback _Call)
 		
 			//TR0 = 0;//先关闭定时器0
 			EA = 1;	
-			TMOD = TMOD|0x01;//定时器工作在方式1
+			TMOD = 0x01;//定时器工作在方式1
 			TH0 = TH0HIGHT; //设置定时器0初值 5ms
 			TL0 = TH0LOW;
 			_Manage->_Timer0._TimeInit = _TimeOut;

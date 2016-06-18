@@ -18,7 +18,7 @@ static H_U8 g_Switch3 = 0;
 #define ADC_POWER_MIN		(0x70)
 
 typedef enum _eRunningStatus_{
-	_RUNNING_INIT,
+	_RUNNING_INIT = 0,
 	_RUNNING_A_STOP, //接触到A点开关，停止
 	_RUNNING_B_STOP, //接触到B点开关，停止
 	_RUNNING_ATOB, //A-B运动
@@ -49,24 +49,25 @@ static void __ExternalLED(H_U8 _Status)
 	{
 		//TODO:外灯关闭
 		RELAY_C=0;
-		EXTERNAL_LED=1;
 	}else
 	{
 		//TODO:外灯开启
 		RELAY_C=1;
-		EXTERNAL_LED=0;
 	}
 }
 
 static void __Timer0Callback(void)
 {
 	//TODO:
-	EXTERNAL_LED = 0;
+	//hs_printf("Timer0 Call \n\r");
+
 	if(!RELAY_C)
 	{
+		//SWITCH2_LED=0;
 		__ExternalLED(H_TRUE);
 	}else 
 	{
+		//SWITCH2_LED=1;
 		__ExternalLED(H_FAUSE);
 		_TimerClose(0);//关闭外灯后关闭定时器
 		g_TimerStop = 1;
@@ -100,7 +101,7 @@ static void __MotorStop(void)
 	RELAY_B = 0;
 	//RELAY_C = 0;
 	g_CurrrentData = 0;
-	hs_printf(" Motor Stop \n\r");
+	//hs_printf(" Motor Stop \n\r");
 }
 
 static void __MotorStart(H_U8 _Turn)
@@ -114,7 +115,7 @@ static void __MotorStart(H_U8 _Turn)
 		RELAY_A = 0;
 		RELAY_B = 1;
 	}
-	hs_printf(" Motor Start \n\r");
+	//hs_printf(" Motor Start \n\r");
 	g_CurrrentData = _ADCResultAverage();
 	_TimerClose(0);//关闭外灯后关闭定时器
 	g_TimerStop = 1;
@@ -164,7 +165,7 @@ static H_S8 _TouchSwitch(void)
 {
 	if(!(T_SWITCH&0x01)) //触摸开关，低电平有效
 	{
-		hs_printf("TouchSwitch 111 \n\r");
+		//hs_printf("TouchSwitch 111 \n\r");
 		_Delay(10);//按键抖动
 		if(!(T_SWITCH&0x01))//开关真正闭合
 		{
@@ -182,7 +183,7 @@ static H_U16 _ADCGetPoint(H_U16 current)
 	{
 		return 0;
 	}
-	 return ((current - 511)>>2);
+	 return ((current - 511)>>3);
 }
 
 
@@ -208,7 +209,7 @@ static void _EventHandler(void)
 		//4、如果状态为 _RUNNING_BTOA，则停止运动，状态为 _RUNNING_BTOA_STOP
 		//5、如果状态为_RUNNING_ATOB_STOP，则由B-A返回运动，状态为_RUNNING_ATOB
 		//6、如果状态为 _RUNNING_BTOA_STOP，则由A-B返回云顶，状态为 _RUNNING_BTOA
-		hs_printf("TouchSwitch Enable \n\r");
+		//hs_printf("TouchSwitch Enable \n\r");
 		if(g_RunningStatus == _RUNNING_A_STOP)
 		{
 			//RELAY_B = 1;
@@ -245,7 +246,7 @@ static void _EventHandler(void)
 		
 		//开启LED灯
 		EXTERNAL_LED=0;
-		_Delay(1000);
+		_Delay(500);
 		EXTERNAL_LED=1;
 	}
 	
@@ -258,7 +259,7 @@ static void _EventHandler(void)
 		g_RunningStatus = _RUNNING_A_STOP;
 		//1号开关LED熄灭
 		SWITCH1_LED = 1;
-		hs_printf("_SwitchA Enable \n\r");
+		//hs_printf("_SwitchA Enable \n\r");
 	}else if(!_SwitchA())
 	{
 		SWITCH1_LED = 0;
@@ -272,19 +273,21 @@ static void _EventHandler(void)
 		//RELAY_B = 0;
 		__MotorStop();
 		g_RunningStatus = _RUNNING_B_STOP;
-		hs_printf("_SwitchB Enable \n\r");
+		//hs_printf("_SwitchB Enable \n\r");
 	}
 	
 	if ((!_SwitchC() && (g_RunningStatus == _RUNNING_ATOB)))
 	{
 		g_Switch3 = 1;
-	}
-	else if((g_Switch3 == 1) && (_SwitchC()))
-	{
+		//SWITCH2_LED=0;
 		g_RunningStatus = _RUNNING_BTOA;
 		__MotorStart(0);
+	}else if((g_Switch3==1) && (_SwitchC()))
+	{
+		//SWITCH2_LED=1;
 		g_Switch3 = 0;
 	}
+	
 	
 	/*
 	if(!_SwitchC() && (g_RunningStatus == _RUNNING_ATOB))
@@ -304,8 +307,8 @@ static void _EventHandler(void)
 	*/
 	
 	_AdcData = _ADCResultAverage();
-	//hs_printf("[main] _ADCGetResult :%d current :%d point:%d\n\r",_AdcData,g_CurrrentData,_ADCGetPoint(g_CurrrentData));
 	
+	//hs_printf("[main] _ADCGetResult :%d current :%d  status:%d \n\r",_AdcData,g_CurrrentData,_ADCGetPoint(g_CurrrentData));
 	if((g_CurrrentData != 0) &&(_AdcData > (g_CurrrentData+_ADCGetPoint(g_CurrrentData)) ) && (g_RunningStatus == _RUNNING_BTOA))
 	{
 		//反转为向B点运动， 状态为 _RUNNING_ATOB
@@ -313,7 +316,10 @@ static void _EventHandler(void)
 		//RELAY_B = 1;
 		g_RunningStatus = _RUNNING_ATOB;
 		__MotorStart(1);
-		hs_printf("_AdcData Enable \n\r");
+		//SWITCH2_LED=0;
+		//_Delay(500);
+		//SWITCH2_LED=1;
+		//hs_printf("_AdcData Enable \n\r");
 	}
 }
 
@@ -328,7 +334,7 @@ void main()
 		//_UartOpen();
 		g_RunningStatus = _RUNNING_INIT;
 		__MotorStart(0);//启动向A点运动
-		hs_printf(RED"[main] Start \n\r");
+		//hs_printf(RED"[main] Start \n\r");
 		RELAY_C = 0;
 		EXTERNAL_LED=1;
 		while(1)
