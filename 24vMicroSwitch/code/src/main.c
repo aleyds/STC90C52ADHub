@@ -108,8 +108,9 @@ static void __MotorStart(H_U8 _Turn)
 {
 	if(_Turn == 0)
 	{
-		RELAY_A = 1;
 		RELAY_B = 0;
+		RELAY_A = 1;
+		
 	}else
 	{
 		RELAY_A = 0;
