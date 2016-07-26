@@ -22,7 +22,7 @@ static void __ADCStart(H_U8 _Channal , H_U8 _Speed)
 
 H_U16 _ADCGetResult(void)
 {
-		__ADCStart(_ADC_IN1, ADC_SPEEDLL);//启动ADC转换
+		__ADCStart(_ADC_IN0, ADC_SPEEDLL);//启动ADC转换
 
 		//等待
 		_nop_();

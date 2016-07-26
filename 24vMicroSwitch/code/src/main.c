@@ -337,7 +337,7 @@ void main()
 		__MotorStart(0);//启动向A点运动
 		//hs_printf(RED"[main] Start \n\r");
 		RELAY_C = 0;
-		EXTERNAL_LED=1;
+		EXTERNAL_LED=0;
 		while(1)
 		{
 			_EventHandler();

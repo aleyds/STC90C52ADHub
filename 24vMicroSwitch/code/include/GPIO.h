@@ -1,8 +1,7 @@
-#ifndef __PLATFOEM_H__
-#define __PLATFOEM_H__
+#ifndef __GPIO_H__
+#define __GPIO_H__
 #include "STC15W404AS.h"
 
-#define FOSC		(16000000L) //16M 芯片晶振大小Hz
 
 sfr WDG_REGISTER=0xe1;//看门狗
 sfr ISP_CONTR=0xe7; //ISP/IAP功能及软件复位
@@ -14,16 +13,16 @@ sbit M_SWITCH3=P3^7;//C点3号微动开关
 sbit T_SWITCH =P3^2;//触摸开关
 
 //LED	
-sbit EXTERNAL_LED=P1^5; //测试使用LED灯
+sbit EXTERNAL_LED=P1^5;
 sbit SWITCH1_LED=P1^7;//1号微动开关显示灯，离开开关时LED点亮  接触1号开关时LED熄灭
-sbit SWITCH2_LED=P1^6; //
+sbit SWITCH2_LED=P1^6;
 
 sbit ALARM_SWITCH=P3^4;
 
 //继电器开关
-sbit RELAY_C = P3^5;  //控制紫外灯，继电器
-sbit RELAY_A = P1^3;  //控制电机运动方向  1
-sbit RELAY_B = P1^4;  //控制电机运动方向  2
+sbit RELAY_C = P3^5;  //电机开关
+sbit RELAY_A = P1^3;  //控制运动方向  1
+sbit RELAY_B = P1^4;  //控制运动方向  2
 
 //ADC寄存器
 sfr P1_ADC_EN = 0x97; // P1口模拟配置寄存器，配置对应的端口为ADC输入口
