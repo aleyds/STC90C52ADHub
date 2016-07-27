@@ -246,9 +246,9 @@ static void _EventHandler(void)
 		}
 		
 		//开启LED灯
-		EXTERNAL_LED=0;
+		ALARM_SWITCH=0;
 		_Delay(500);
-		EXTERNAL_LED=1;
+		//EXTERNAL_LED=1;
 	}
 	
 	if(_SwitchA()/*&&(g_RunningStatus != _RUNNING_A_STOP)*/)//A点开关闭合
@@ -325,23 +325,36 @@ static void _EventHandler(void)
 }
 
 
+static void _Sleep(void)
+{
+	PCON = 0x02;
+}
 
+static void _SleepInit(void)
+{
+	WKTCL = 49;//设置唤醒周期为488us*(49+1)=24.4ms
+	WKTCH = 0x80;//使能掉电唤醒定时器
+}
 
 
 void main()
 {
 		__SystemInit();
 		_ADCInit();
+		//_SleepInit();
 		//_UartOpen();
 		g_RunningStatus = _RUNNING_INIT;
 		__MotorStart(0);//启动向A点运动
 		//hs_printf(RED"[main] Start \n\r");
 		RELAY_C = 0;
-		EXTERNAL_LED=0;
+		ALARM_SWITCH = 0;
+		EXTERNAL_LED = 1;
+		SWITCH1_LED = 0;
+		SWITCH2_LED = 0;
 		while(1)
 		{
-			_EventHandler();
-			
+			//_EventHandler();
+			//_Sleep();
 		}
 }
 

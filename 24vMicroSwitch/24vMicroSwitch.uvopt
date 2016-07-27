@@ -256,8 +256,8 @@
 
   <AlienFiles>
     <PathWithFilename>F:\STC89C52\STC90C52AD\TRUNK\24VMICROSWITCH\CODE\INCLUDE\PLATFORM.H</PathWithFilename>
-    <TopLine>1</TopLine>
-    <CurrentLine>5</CurrentLine>
+    <TopLine>10</TopLine>
+    <CurrentLine>20</CurrentLine>
     <Constant>0</Constant>
     <WindowPosition>
       <length>0</length>
@@ -1637,9 +1637,9 @@
         </Doc>
         <Doc>
           <Name>\STC89C52\STC90C52AD\TRUNK\24VMICROSWITCH\CODE\INCLUDE\PLATFORM.H</Name>
-          <ColumnNumber>52</ColumnNumber>
-          <TopLine>1</TopLine>
-          <CurrentLine>5</CurrentLine>
+          <ColumnNumber>36</ColumnNumber>
+          <TopLine>10</TopLine>
+          <CurrentLine>20</CurrentLine>
         </Doc>
       </Documents>
     </MDIGroup>
