@@ -2,7 +2,7 @@
 #define __PLATFOEM_H__
 #include "STC15W404AS.h"
 
-#define FOSC		(16000000L) //16M 芯片晶振大小Hz
+#define FOSC		(18432000L) //16M 芯片晶振大小Hz
 
 sfr WDG_REGISTER=0xe1;//看门狗
 sfr ISP_CONTR=0xe7; //ISP/IAP功能及软件复位
@@ -26,10 +26,10 @@ sbit RELAY_A = P1^3;  //控制电机运动方向  1
 sbit RELAY_B = P1^4;  //控制电机运动方向  2
 
 //ADC寄存器
-sfr P1_ADC_EN = 0x97; // P1口模拟配置寄存器，配置对应的端口为ADC输入口
-sfr ADC_CONTER = 0xC5; //ADC 控制寄存器
-sfr ADC_DATA_HIGHT = 0xC6; //ADC 转换结果，10位高8位数据
-sfr ADC_DATA_LOW = 0xC7; //ADC 转换结果，10位数据的低2位
+//sfr P1_ADC_EN = 0x97; // P1口模拟配置寄存器，配置对应的端口为ADC输入口
+//sfr ADC_CONTER = 0xC5; //ADC 控制寄存器
+//sfr ADC_DATA_HIGHT = 0xC6; //ADC 转换结果，10位高8位数据
+//sfr ADC_DATA_LOW = 0xC7; //ADC 转换结果，10位数据的低2位
 
 
 #endif

@@ -1,25 +1,39 @@
 #include "base_type.h"
 #include "platform.h"
 #include "intrins.h"
-#include "tools.h"
-#include "uart.h"
 #include "adc.h"
 
-void _ADCInit(void)
+extern void _Delayms(unsigned int ms);
+/*----------------------------
+初始化ADC
+----------------------------*/
+void _ADCInit()
 {
-		P1_ADC_EN = 0xFF;
-		ADC_DATA_HIGHT = 0x0;
-		ADC_DATA_LOW = ADC_DATA_LOW&0xFC;
-		ADC_CONTER = ADC_SPEEDLL;
-		_Delay(2);
+    P1ASF = 0xff;                   //设置P1口为AD口
+    ADC_RES = 0;                    //清除结果寄存器
+    ADC_CONTR = ADC_POWER | ADC_SPEEDLL;
+    _Delayms(2);                       //ADC上电并延时
 }
 
-static void __ADCStart(H_U8 _Channal , H_U8 _Speed)
+
+/*----------------------------
+读取ADC结果
+----------------------------*/
+ BYTE _ADCGetResult(BYTE ch)
 {
-		ADC_CONTER = (_Speed | ADC_START | _Channal);
-		return;
+    ADC_CONTR = ADC_POWER | ADC_SPEEDLL | ch | ADC_START;
+    _nop_();                        //等待4个NOP
+    _nop_();
+    _nop_();
+    _nop_();
+    while (!(ADC_CONTR & ADC_FLAG));//等待ADC转换完成
+    ADC_CONTR &= ~ADC_FLAG;         //Close ADC
+
+    return ADC_RES;                 //返回ADC结果
 }
 
+
+/*
 H_U16 _ADCGetResult(void)
 {
 		__ADCStart(_ADC_IN0, ADC_SPEEDLL);//启动ADC转换
@@ -37,3 +51,4 @@ H_U16 _ADCGetResult(void)
 		ADC_CONTER &= ~ADC_FLAG;//停止ADC转换，清楚结束标志
 		return (H_U16)(((ADC_DATA_HIGHT&0xFF)<<2)| ADC_DATA_LOW&0x3);
 }
+*/

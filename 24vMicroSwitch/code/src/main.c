@@ -1,19 +1,49 @@
 #include "base_type.h"
 #include <platform.h>
 #include "intrins.h"
-#include "adc.h"
-#include "tools.h"
 #include "uart.h"
 #include "timer.h"
+#include "adc.h"
+
+#define STARTALLIRQ()		{EA=1;}
+
+void Delay1us()		//@18.432MHz
+{
+	unsigned char i;
+
+	i = 2;
+	while (--i);
+}
+
+void Delay1ms()		//@18.432MHz
+{
+	unsigned char i, j;
+
+	i = 18;
+	j = 235;
+	do
+	{
+		while (--j);
+	} while (--i);
+}
+
+
+void _Delayms(unsigned int ms)
+{
+	while(ms--)
+	{
+		Delay1ms();
+	}
+}
 
 #define TIME_15MIN		(15*60*1000)
 
 #define TOUCH_RESTORE_TIME		(3)
-static H_U8 g_TouchEnable = 0;
-static H_U32 g_TouchRestore = 0;
-static H_U32 g_CurrrentData = 0;
-static H_U8 g_TimerStop = 1;
-static H_U8 g_Switch3 = 0;
+static xdata H_U8 g_TouchEnable = 0;
+static xdata H_U32 g_TouchRestore = 0;
+static xdata H_U32 g_CurrrentData = 0;
+static xdata H_U8 g_TimerStop = 1;
+static xdata H_U8 g_Switch3 = 0;
 #define ADC_POWER_MAX		(0x8f)
 #define ADC_POWER_MIN		(0x70)
 
@@ -27,19 +57,18 @@ typedef enum _eRunningStatus_{
 	_RUNNING_BTOA_STOP, //B-A运动中停止
 }_eRunningStatus;
 
-static _eRunningStatus g_RunningStatus;
+static xdata _eRunningStatus g_RunningStatus;
 
-//单片机系统初始化
-static void __SystemInit(void)
+//开关A LED灯显示关闭
+static void LEDSwitchA(BYTE display)
 {
-		//外部中断0 配置
-		IT0 = 0; //外部中断低电平触发  IT0 = 1 外部中断0下降沿触发
-		EX0 = 0; //打开外部中断0  EX0=0;关闭外部中断0
-	 //外部中断1 配置
-		IT1 = 0; //外部中断低电平触发  IT1 = 1 外部中断1下降沿触发
-		EX1 = 0; //打开外部中断1  EX1=0;关闭外部中断1
-	
-		EA = 1;	//总中断开关
+	if(display)
+	{
+		SWITCH1_LED = 0;
+	}else
+	{
+		SWITCH1_LED = 1;
+	}
 }
 
 //外灯开启或关闭
@@ -81,7 +110,7 @@ static H_U16 _ADCResultAverage(void)
 	H_U32 sum = 0;
 	for(i = 0; i < 20;i++)
 	{
-		sum += _ADCGetResult();
+		sum += _ADCGetResult(0);
 	}
 	return (sum/20);
 }
@@ -127,7 +156,7 @@ static H_S8 _SwitchA(void)
 {
 	if(!(M_SWITCH1&0x01)) //A点1号微动开关，低电平有效
 	{
-		_Delay(10);//按键抖动
+		_Delayms(10);//按键抖动
 		if(!(M_SWITCH1&0x01))//开关真正闭合
 		{
 			return 1;
@@ -140,7 +169,7 @@ static H_S8 _SwitchB(void)
 {
 	if(!(M_SWITCH2&0x01)) //B点2号微动开关，低电平有效
 	{
-		_Delay(10);//按键抖动
+		_Delayms(10);//按键抖动
 		if(!(M_SWITCH2&0x01))//开关真正闭合
 		{
 			return 1;
@@ -153,7 +182,7 @@ static H_S8 _SwitchC(void)
 {
 	if(!(M_SWITCH3&0x01)) //C点3号微动开关，低电平有效
 	{
-		_Delay(10);//按键抖动
+		_Delayms(10);//按键抖动
 		if(!(M_SWITCH3&0x01))//开关真正闭合
 		{
 			return 1;
@@ -167,7 +196,7 @@ static H_S8 _TouchSwitch(void)
 	if(!(T_SWITCH&0x01)) //触摸开关，低电平有效
 	{
 		//hs_printf("TouchSwitch 111 \n\r");
-		_Delay(10);//按键抖动
+		_Delayms(10);//按键抖动
 		if(!(T_SWITCH&0x01))//开关真正闭合
 		{
 			//发出滴的声音
@@ -190,7 +219,7 @@ static H_U16 _ADCGetPoint(H_U16 current)
 
 static void _EventHandler(void)
 {
-	H_U16 _AdcData = 0;
+	BYTE _AdcData = 0;
 	g_TouchRestore = (g_TouchRestore > TOUCH_RESTORE_TIME)?TOUCH_RESTORE_TIME:g_TouchRestore;
 	if(g_TouchRestore == 0)
 	{
@@ -202,6 +231,7 @@ static void _EventHandler(void)
 	
 	if(_TouchSwitch()&&g_TouchEnable==0)//触发触摸开关
 	{
+		SendString("Touch PullDown \n\r");
 		g_TouchEnable = 1;
 		g_TouchRestore = TOUCH_RESTORE_TIME;
 		//1、如果状态在A点停止，则由A-B点运动，状态改为 _RUNNING_ATOB
@@ -247,11 +277,11 @@ static void _EventHandler(void)
 		
 		//开启LED灯
 		ALARM_SWITCH=0;
-		_Delay(500);
-		//EXTERNAL_LED=1;
+		_Delayms(500);
+		EXTERNAL_LED=1;
 	}
 	
-	if(_SwitchA()/*&&(g_RunningStatus != _RUNNING_A_STOP)*/)//A点开关闭合
+	if(_SwitchA())//A点开关闭合
 	{
 		//停止电机运动，状态为_RUNNING_A_STOP
 		//RELAY_A = 1;
@@ -259,22 +289,23 @@ static void _EventHandler(void)
 		__MotorStop();
 		g_RunningStatus = _RUNNING_A_STOP;
 		//1号开关LED熄灭
-		SWITCH1_LED = 1;
-		//hs_printf("_SwitchA Enable \n\r");
+		LEDSwitchA(1);
+		SendString("Switch A PullDown \n\r");
 	}else if(!_SwitchA())
 	{
-		SWITCH1_LED = 0;
+		LEDSwitchA(0);
 	}
 	
 	
-	if(_SwitchB() /*&& (g_RunningStatus != _RUNNING_B_STOP)*/)
+	if(_SwitchB() )
 	{
 		//停止电机运动，状态为_RUNNING_A_STOP
 		//RELAY_A = 0;
 		//RELAY_B = 0;
 		__MotorStop();
 		g_RunningStatus = _RUNNING_B_STOP;
-		//hs_printf("_SwitchB Enable \n\r");
+		SendString("Switch B PullDown \n\r");
+	
 	}
 	
 	if ((!_SwitchC() && (g_RunningStatus == _RUNNING_ATOB)))
@@ -283,6 +314,7 @@ static void _EventHandler(void)
 		//SWITCH2_LED=0;
 		g_RunningStatus = _RUNNING_BTOA;
 		__MotorStart(0);
+		SendString("Switch C PullDown \n\r");
 	}else if((g_Switch3==1) && (_SwitchC()))
 	{
 		//SWITCH2_LED=1;
@@ -290,26 +322,10 @@ static void _EventHandler(void)
 	}
 	
 	
-	/*
-	if(!_SwitchC() && (g_RunningStatus == _RUNNING_ATOB))
-	{
-		//_Delay(100);//等待一段时间后
-		if(_SwitchC())//3号开关又闭合状态
-		{
-			//反转为A点，状态为 _RUNNING_BTOA
-			//RELAY_A = 1;
-			//RELAY_B = 0;
-			g_RunningStatus = _RUNNING_BTOA;
-			__MotorStart(0);
-			hs_printf("_SwitchC Enable \n\r");
-		}
-		
-	}
-	*/
-	
-	_AdcData = _ADCResultAverage();
+	_AdcData = _ADCGetResult();
 	
 	//hs_printf("[main] _ADCGetResult :%d current :%d  status:%d \n\r",_AdcData,g_CurrrentData,_ADCGetPoint(g_CurrrentData));
+	SendPrintf("ADC Data:%d\n\r",_AdcData);
 	if((g_CurrrentData != 0) &&(_AdcData > (g_CurrrentData+_ADCGetPoint(g_CurrrentData)) ) && (g_RunningStatus == _RUNNING_BTOA))
 	{
 		//反转为向B点运动， 状态为 _RUNNING_ATOB
@@ -318,13 +334,13 @@ static void _EventHandler(void)
 		g_RunningStatus = _RUNNING_ATOB;
 		__MotorStart(1);
 		//SWITCH2_LED=0;
-		//_Delay(500);
+		//_Delayms(500);
 		//SWITCH2_LED=1;
 		//hs_printf("_AdcData Enable \n\r");
 	}
 }
 
-
+ 
 static void _Sleep(void)
 {
 	PCON = 0x02;
@@ -339,22 +355,52 @@ static void _SleepInit(void)
 
 void main()
 {
-		__SystemInit();
-		_ADCInit();
+	
+		//__SystemInit();
+		//_ADCInit();
 		//_SleepInit();
 		//_UartOpen();
-		g_RunningStatus = _RUNNING_INIT;
-		__MotorStart(0);//启动向A点运动
+		//g_RunningStatus = _RUNNING_INIT;
+		//_MotorStart(0);//启动向A点运动
 		//hs_printf(RED"[main] Start \n\r");
-		RELAY_C = 0;
+		InitUart();//串口初始化
+		_ADCInit();//ADC初始化
+		_SleepInit();//低功耗模式，暂时不使用
+		SendString("WillCome to 24V\n\r");
+		
+		g_RunningStatus = _RUNNING_INIT;
+		_MotorStart(0);//启动向A点运动
+		 RELAY_C = 0;
 		ALARM_SWITCH = 0;
-		EXTERNAL_LED = 1;
+		EXTERNAL_LED = 0;
 		SWITCH1_LED = 0;
-		SWITCH2_LED = 0;
+		SWITCH2_LED = 0; 
+		P1 = 0xff;
+		STARTALLIRQ();
+		
+		
 		while(1)
 		{
+			_Sleep();//低功耗模式，暂时不使用
+			_EventHandler();
+			
+			//全部GPIO测试代码
+			 /* P0 = 0xFF;
+			P1 = 0xFF;
+			P2 = 0xFF;
+			P3 = 0xFF;
+			P4 = 0xFF;
+			P5 = 0xFF;
+			_Delayms(3000);
+			P0 = 0x00;
+			P1 = 0x00;
+			P2 = 0x00;
+			P3 = 0x00;
+			P4 = 0x00;
+			P5 = 0x00;
+			_Delayms(3000);  */
+			
 			//_EventHandler();
-			//_Sleep();
 		}
 }
 

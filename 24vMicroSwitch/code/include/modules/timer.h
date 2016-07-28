@@ -1,10 +1,13 @@
 #ifndef __STC90C52AD_TIMER_H__
 #define __STC90C52AD_TIMER_H__
 
-#define T1MAX0		(8192)	//工作方式0
-#define T1MAX1		(65536)  //工作方式1
-#define T1MAX2		(256)	//工作方式2
-#define T1MS(ms)	(T1MAX1-(FOSC/12/(ms*1000)))	
+#ifndef FOSC
+#define FOSC 18432000L
+#endif
+
+#define T1MS (65536-FOSC/1000)      //1T模式
+//#define T1MS (65536-FOSC/12/1000) //12T模式
+
 
 enum {
 	_TYPE_TIMER_0 = 0,

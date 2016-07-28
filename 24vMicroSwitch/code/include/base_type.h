@@ -11,6 +11,9 @@ typedef short H_S16;
 typedef char H_S8;
 typedef int H_BOOL;
 
+typedef unsigned char BYTE;
+typedef unsigned int WORD;
+
 
 #define H_SUCCESS			(0)
 #define H_FAILURE			(~0)
