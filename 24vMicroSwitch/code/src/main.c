@@ -7,6 +7,7 @@
 
 #define STARTALLIRQ()		{EA=1;}
 
+/*
 void Delay1us()		//@18.432MHz
 {
 	unsigned char i;
@@ -14,6 +15,7 @@ void Delay1us()		//@18.432MHz
 	i = 2;
 	while (--i);
 }
+*/
 
 void Delay1ms()		//@18.432MHz
 {
@@ -43,7 +45,7 @@ static xdata H_U8 g_TouchEnable = 0;
 static xdata H_U32 g_TouchRestore = 0;
 static xdata H_U32 g_CurrrentData = 0;
 static xdata H_U8 g_TimerStop = 1;
-static xdata H_U8 g_Switch3 = 0;
+//static xdata H_U8 g_Switch3 = 0;
 #define ADC_POWER_MAX		(0x8f)
 #define ADC_POWER_MIN		(0x70)
 
@@ -216,10 +218,30 @@ static H_U16 _ADCGetPoint(H_U16 current)
 	 return ((current - 511)>>3);
 }
 
+//触摸板按键，蜂鸣器响
+static void _TouchAlarm()
+{
+	//开启LED灯
+	ALARM_SWITCH=0;
+	_Delayms(500);
+	EXTERNAL_LED=1;
+}
+
+static BYTE _ElectricityDect(void)
+{
+	BYTE _AdcData = 0;
+	_AdcData = _ADCGetResult(0);//P1.0口为电流检测口
+	
+	SendPrintf("ADC Data:%d\n\r",_AdcData);
+	if((g_CurrrentData != 0 )&&(_AdcData > (g_CurrrentData+_ADCGetPoint(g_CurrrentData))))
+	{
+		return 1;//电流超过阈值
+	}
+	return 0;//电流正常
+}
 
 static void _EventHandler(void)
 {
-	BYTE _AdcData = 0;
 	g_TouchRestore = (g_TouchRestore > TOUCH_RESTORE_TIME)?TOUCH_RESTORE_TIME:g_TouchRestore;
 	if(g_TouchRestore == 0)
 	{
@@ -231,7 +253,7 @@ static void _EventHandler(void)
 	
 	if(_TouchSwitch()&&g_TouchEnable==0)//触发触摸开关
 	{
-		SendString("Touch PullDown \n\r");
+		SendPrintf("Touch PullDown \n\r");
 		g_TouchEnable = 1;
 		g_TouchRestore = TOUCH_RESTORE_TIME;
 		//1、如果状态在A点停止，则由A-B点运动，状态改为 _RUNNING_ATOB
@@ -240,107 +262,80 @@ static void _EventHandler(void)
 		//4、如果状态为 _RUNNING_BTOA，则停止运动，状态为 _RUNNING_BTOA_STOP
 		//5、如果状态为_RUNNING_ATOB_STOP，则由B-A返回运动，状态为_RUNNING_ATOB
 		//6、如果状态为 _RUNNING_BTOA_STOP，则由A-B返回云顶，状态为 _RUNNING_BTOA
-		//hs_printf("TouchSwitch Enable \n\r");
-		if(g_RunningStatus == _RUNNING_A_STOP)
+		switch(g_RunningStatus)//不同状态下，按触摸按键对应操作
 		{
-			//RELAY_B = 1;
-			//RELAY_A = 0;
-			g_RunningStatus = _RUNNING_ATOB;
-			__MotorStart(1);
-		}else if(g_RunningStatus == _RUNNING_B_STOP)
-		{
-			//RELAY_A = 1;
-			//RELAY_B = 0;
-			g_RunningStatus = _RUNNING_BTOA;
-			__MotorStart(0);
-		}else if(g_RunningStatus == _RUNNING_ATOB)
-		{
-			g_RunningStatus = _RUNNING_ATOB_STOP;
-			__MotorStop();
-		}else if(g_RunningStatus == _RUNNING_BTOA)
-		{
-			g_RunningStatus = _RUNNING_BTOA_STOP;
-			__MotorStop();
-		}else if(g_RunningStatus == _RUNNING_ATOB_STOP)
-		{
-			//RELAY_A = 1;
-			//RELAY_B = 0;
-			g_RunningStatus = _RUNNING_ATOB;
-			__MotorStart(0);
-		}else if(g_RunningStatus == _RUNNING_BTOA_STOP)
-		{
-			//RELAY_A = 0;
-			//RELAY_B = 1;
-			g_RunningStatus = _RUNNING_BTOA;
-			__MotorStart(1);
+			case _RUNNING_A_STOP:
+				g_RunningStatus = _RUNNING_ATOB;
+				__MotorStart(1);
+				break;
+			case _RUNNING_B_STOP:
+				g_RunningStatus = _RUNNING_BTOA;
+				__MotorStart(0);
+				break;
+			case _RUNNING_ATOB:
+				g_RunningStatus = _RUNNING_ATOB_STOP;
+				__MotorStop();
+				break;
+			case _RUNNING_BTOA:
+				g_RunningStatus = _RUNNING_BTOA_STOP;
+				__MotorStop();
+				break;
+			case _RUNNING_ATOB_STOP:
+				g_RunningStatus = _RUNNING_ATOB;
+				__MotorStart(0);
+				break;
+			case _RUNNING_BTOA_STOP:
+				g_RunningStatus = _RUNNING_BTOA;
+				__MotorStart(1);
+				break;
+			default:
+				break;
 		}
+		_TouchAlarm();//采用软件延时，所以动作完成后再响蜂鸣器
 		
-		//开启LED灯
-		ALARM_SWITCH=0;
-		_Delayms(500);
-		EXTERNAL_LED=1;
 	}
 	
 	if(_SwitchA())//A点开关闭合
 	{
 		//停止电机运动，状态为_RUNNING_A_STOP
-		//RELAY_A = 1;
-		//RELAY_B = 0;
 		__MotorStop();
 		g_RunningStatus = _RUNNING_A_STOP;
 		//1号开关LED熄灭
-		LEDSwitchA(1);
-		SendString("Switch A PullDown \n\r");
+		LEDSwitchA(0);
+		//SendPrintf("Switch A PullDown \n\r");
 	}else if(!_SwitchA())
 	{
-		LEDSwitchA(0);
+		LEDSwitchA(1);
 	}
 	
 	
 	if(_SwitchB() )
 	{
 		//停止电机运动，状态为_RUNNING_A_STOP
-		//RELAY_A = 0;
-		//RELAY_B = 0;
 		__MotorStop();
 		g_RunningStatus = _RUNNING_B_STOP;
-		SendString("Switch B PullDown \n\r");
+		//SendPrintf("Switch B PullDown \n\r");
 	
 	}
 	
 	if ((!_SwitchC() && (g_RunningStatus == _RUNNING_ATOB)))
 	{
-		g_Switch3 = 1;
-		//SWITCH2_LED=0;
+
 		g_RunningStatus = _RUNNING_BTOA;
 		__MotorStart(0);
 		SendString("Switch C PullDown \n\r");
-	}else if((g_Switch3==1) && (_SwitchC()))
-	{
-		//SWITCH2_LED=1;
-		g_Switch3 = 0;
 	}
 	
-	
-	_AdcData = _ADCGetResult();
-	
-	//hs_printf("[main] _ADCGetResult :%d current :%d  status:%d \n\r",_AdcData,g_CurrrentData,_ADCGetPoint(g_CurrrentData));
-	SendPrintf("ADC Data:%d\n\r",_AdcData);
-	if((g_CurrrentData != 0) &&(_AdcData > (g_CurrrentData+_ADCGetPoint(g_CurrrentData)) ) && (g_RunningStatus == _RUNNING_BTOA))
+	if( (_ElectricityDect == 1)&& (g_RunningStatus == _RUNNING_BTOA))//从A向B运动过程中，电流瞬间增大5%,电机反转
 	{
 		//反转为向B点运动， 状态为 _RUNNING_ATOB
-		//RELAY_A = 0;
-		//RELAY_B = 1;
 		g_RunningStatus = _RUNNING_ATOB;
 		__MotorStart(1);
-		//SWITCH2_LED=0;
-		//_Delayms(500);
-		//SWITCH2_LED=1;
-		//hs_printf("_AdcData Enable \n\r");
+		SendString("Electricity Gain\n\r");
 	}
 }
 
- 
+ /*
 static void _Sleep(void)
 {
 	PCON = 0x02;
@@ -351,37 +346,23 @@ static void _SleepInit(void)
 	WKTCL = 49;//设置唤醒周期为488us*(49+1)=24.4ms
 	WKTCH = 0x80;//使能掉电唤醒定时器
 }
-
+*/
 
 void main()
 {
-	
-		//__SystemInit();
-		//_ADCInit();
-		//_SleepInit();
-		//_UartOpen();
-		//g_RunningStatus = _RUNNING_INIT;
-		//_MotorStart(0);//启动向A点运动
-		//hs_printf(RED"[main] Start \n\r");
 		InitUart();//串口初始化
 		_ADCInit();//ADC初始化
-		_SleepInit();//低功耗模式，暂时不使用
+		//_SleepInit();//低功耗模式，暂时不使用
 		SendString("WillCome to 24V\n\r");
 		
 		g_RunningStatus = _RUNNING_INIT;
 		_MotorStart(0);//启动向A点运动
-		 RELAY_C = 0;
-		ALARM_SWITCH = 0;
-		EXTERNAL_LED = 0;
-		SWITCH1_LED = 0;
-		SWITCH2_LED = 0; 
-		P1 = 0xff;
 		STARTALLIRQ();
 		
 		
 		while(1)
 		{
-			_Sleep();//低功耗模式，暂时不使用
+			//_Sleep();//低功耗模式，暂时不使用
 			_EventHandler();
 			
 			//全部GPIO测试代码
@@ -399,8 +380,7 @@ void main()
 			P4 = 0x00;
 			P5 = 0x00;
 			_Delayms(3000);  */
-			
-			//_EventHandler();
+
 		}
 }
 
